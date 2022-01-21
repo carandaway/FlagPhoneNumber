@@ -22,7 +22,8 @@ open class FPNTextField: UITextField {
 
 	/// The size of the leftView
 	private var leftViewSize: CGSize {
-		let width = flagButtonSize.width + getWidth(text: phoneCodeTextField.text!)
+        var width = (showFlag ? flagButtonSize.width : 12) + getWidth(text: phoneCodeTextField.text!)
+        width = width + rightImageInsets.left + rightImageInsets.right + rightImageSize.width
 		let height = bounds.height
 
 		return CGSize(width: width, height: height)
@@ -35,6 +36,9 @@ open class FPNTextField: UITextField {
 	private var formatter: NBAsYouTypeFormatter?
 
 	open var flagButton: UIButton = UIButton()
+    open var rightImage: UIImageView = UIImageView(frame: .zero)
+    open var rightImageInsets: UIEdgeInsets = UIEdgeInsets(top: 0, left: 0, bottom: 0, right: 0)
+    open var rightImageSize: CGSize = CGSize(width: 0, height: 0)
 
 	open override var font: UIFont? {
 		didSet {
@@ -58,6 +62,8 @@ open class FPNTextField: UITextField {
 			updatePlaceholder()
 		}
 	}
+    
+    open var showFlag: Bool = true
 
 	open var countryRepository = FPNCountryRepository()
 
@@ -96,6 +102,12 @@ open class FPNTextField: UITextField {
 
 		setup()
 	}
+    
+    public init(showFlag: Bool) {
+        super.init(frame: .zero)
+        self.showFlag = showFlag
+        setup()
+    }
 
 	private func setup() {
 		leftViewMode = .always
@@ -139,22 +151,44 @@ open class FPNTextField: UITextField {
 			// Fallback on earlier versions
 		}
 
-		leftView?.addSubview(flagButton)
-		leftView?.addSubview(phoneCodeTextField)
+        
+        flagButton.imageView?.isHidden = !showFlag
+        if rightImage.image == nil {
+            rightImage.isHidden = true
+        } else {
+            rightImage.isHidden = false
+        }
+        leftView?.addSubview(rightImage)
+        leftView?.addSubview(phoneCodeTextField)
+        leftView?.addSubview(flagButton)
+		
+        if showFlag {
+            flagWidthConstraint = NSLayoutConstraint(item: flagButton, attribute: .width, relatedBy: .equal, toItem: nil, attribute: .notAnAttribute, multiplier: 0, constant: flagButtonSize.width)
+            flagHeightConstraint = NSLayoutConstraint(item: flagButton, attribute: .height, relatedBy: .equal, toItem: nil, attribute: .notAnAttribute, multiplier: 0, constant: flagButtonSize.height)
 
-		flagWidthConstraint = NSLayoutConstraint(item: flagButton, attribute: .width, relatedBy: .equal, toItem: nil, attribute: .notAnAttribute, multiplier: 0, constant: flagButtonSize.width)
-		flagHeightConstraint = NSLayoutConstraint(item: flagButton, attribute: .height, relatedBy: .equal, toItem: nil, attribute: .notAnAttribute, multiplier: 0, constant: flagButtonSize.height)
+            flagWidthConstraint?.isActive = true
+            flagHeightConstraint?.isActive = true
 
-		flagWidthConstraint?.isActive = true
-		flagHeightConstraint?.isActive = true
-
-		NSLayoutConstraint(item: flagButton, attribute: .centerY, relatedBy: .equal, toItem: leftView, attribute: .centerY, multiplier: 1, constant: 0).isActive = true
-
-		NSLayoutConstraint(item: flagButton, attribute: .leading, relatedBy: .equal, toItem: leftView, attribute: .leading, multiplier: 1, constant: 0).isActive = true
-		NSLayoutConstraint(item: phoneCodeTextField, attribute: .leading, relatedBy: .equal, toItem: flagButton, attribute: .trailing, multiplier: 1, constant: 0).isActive = true
-		NSLayoutConstraint(item: phoneCodeTextField, attribute: .trailing, relatedBy: .equal, toItem: leftView, attribute: .trailing, multiplier: 1, constant: 0).isActive = true
-		NSLayoutConstraint(item: phoneCodeTextField, attribute: .top, relatedBy: .equal, toItem: leftView, attribute: .top, multiplier: 1, constant: 0).isActive = true
-		NSLayoutConstraint(item: phoneCodeTextField, attribute: .bottom, relatedBy: .equal, toItem: leftView, attribute: .bottom, multiplier: 1, constant: 0).isActive = true
+            NSLayoutConstraint(item: flagButton, attribute: .centerY, relatedBy: .equal, toItem: leftView, attribute: .centerY, multiplier: 1, constant: 0).isActive = true
+            NSLayoutConstraint(item: flagButton, attribute: .leading, relatedBy: .equal, toItem: leftView, attribute: .leading, multiplier: 1, constant: 0).isActive = true
+            
+            
+            NSLayoutConstraint(item: phoneCodeTextField, attribute: .leading, relatedBy: .equal, toItem: flagButton, attribute: .trailing, multiplier: 1, constant: 0).isActive = true
+            NSLayoutConstraint(item: phoneCodeTextField, attribute: .trailing, relatedBy: .equal, toItem: leftView, attribute: .trailing, multiplier: 1, constant: 0).isActive = true
+            NSLayoutConstraint(item: phoneCodeTextField, attribute: .top, relatedBy: .equal, toItem: leftView, attribute: .top, multiplier: 1, constant: 0).isActive = true
+            NSLayoutConstraint(item: phoneCodeTextField, attribute: .bottom, relatedBy: .equal, toItem: leftView, attribute: .bottom, multiplier: 1, constant: 0).isActive = true
+        } else {
+            NSLayoutConstraint(item: flagButton, attribute: .leading, relatedBy: .equal, toItem: phoneCodeTextField, attribute: .leading, multiplier: 1, constant: 0).isActive = true
+            NSLayoutConstraint(item: flagButton, attribute: .trailing, relatedBy: .equal, toItem: phoneCodeTextField, attribute: .trailing, multiplier: 1, constant: 0).isActive = true
+            NSLayoutConstraint(item: flagButton, attribute: .top, relatedBy: .equal, toItem: phoneCodeTextField, attribute: .top, multiplier: 1, constant: 0).isActive = true
+            NSLayoutConstraint(item: flagButton, attribute: .bottom, relatedBy: .equal, toItem: phoneCodeTextField, attribute: .bottom, multiplier: 1, constant: 0).isActive = true
+            
+            NSLayoutConstraint(item: phoneCodeTextField, attribute: .leading, relatedBy: .equal, toItem: leftView, attribute: .leading, multiplier: 1, constant: 12).isActive = true
+            NSLayoutConstraint(item: phoneCodeTextField, attribute: .trailing, relatedBy: .equal, toItem: leftView, attribute: .trailing, multiplier: 1, constant: 0).isActive = true
+            NSLayoutConstraint(item: phoneCodeTextField, attribute: .top, relatedBy: .equal, toItem: leftView, attribute: .top, multiplier: 1, constant: 0).isActive = true
+            NSLayoutConstraint(item: phoneCodeTextField, attribute: .bottom, relatedBy: .equal, toItem: leftView, attribute: .bottom, multiplier: 1, constant: 0).isActive = true
+            leftView?.bringSubviewToFront(flagButton)
+        }
 	}
 
 	open override func updateConstraints() {
@@ -263,6 +297,24 @@ open class FPNTextField: UITextField {
 		}
 	}
 
+    open func setRightImage(image: UIImage, insets: UIEdgeInsets, size: CGSize) {
+    
+        rightImage.image = image
+        rightImageInsets = insets
+        rightImageSize = size
+        rightImage.isHidden = false
+        rightImage.translatesAutoresizingMaskIntoConstraints = false
+        
+        NSLayoutConstraint(item: rightImage, attribute: .trailing, relatedBy: .equal, toItem: phoneCodeTextField, attribute: .trailing, multiplier: 1, constant: -rightImageInsets.left).isActive = true
+        
+        NSLayoutConstraint(item: rightImage, attribute: .centerY, relatedBy: .equal, toItem: leftView, attribute: .centerY, multiplier: 1, constant: 0).isActive = true
+        NSLayoutConstraint(item: rightImage, attribute: .width, relatedBy: .equal, toItem: nil, attribute: .notAnAttribute, multiplier: 1, constant: rightImageSize.width).isActive = true
+        NSLayoutConstraint(item: rightImage, attribute: .height, relatedBy: .equal, toItem: nil, attribute: .notAnAttribute, multiplier: 1, constant: rightImageSize.height).isActive = true
+        
+        self.layoutIfNeeded()
+    
+    }
+    
 	/// Set the country image according to country code. Example "FR"
 	open func setFlag(countryCode: FPNCountryCode) {
 		let countries = countryRepository.countries
@@ -373,9 +425,11 @@ open class FPNTextField: UITextField {
 		if let countryCode = selectedCountry?.code {
 			formatter = NBAsYouTypeFormatter(regionCode: countryCode.rawValue)
 		}
-
-		flagButton.setImage(selectedCountry?.flag, for: .normal)
-
+        flagButton.imageView?.isHidden = !showFlag
+        if showFlag {
+            flagButton.setImage(selectedCountry?.flag, for: .normal)
+        }
+        
 		if let phoneCode = selectedCountry?.phoneCode {
 			phoneCodeTextField.text = phoneCode
 		}
@@ -447,8 +501,12 @@ open class FPNTextField: UITextField {
 		if let countryCode = selectedCountry?.code {
 			do {
 				let example = try phoneUtil.getExampleNumber(countryCode.rawValue)
-				let phoneNumber = "+\(example.countryCode.stringValue)\(example.nationalNumber.stringValue)"
-
+                
+				var phoneNumber = "+\(example.countryCode.stringValue)\(example.nationalNumber.stringValue)"
+                if example.countryCode.stringValue == "44" {
+                    phoneNumber = "+\(example.countryCode.stringValue)7400123456"
+                }
+                
 				if let inputString = formatter?.inputString(phoneNumber) {
 					placeholder = remove(dialCode: "+\(example.countryCode.stringValue)", in: inputString)
 				} else {
